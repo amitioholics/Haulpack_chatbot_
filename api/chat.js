@@ -1,7 +1,7 @@
-const { GoogleGenAI } = require('@google/genai');
+const { OpenRouter } = require('@openrouter/sdk');
 
-const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY
+const openrouter = new OpenRouter({
+    apiKey: process.env.OPENROUTER_API_KEY,
 });
 
 const HAULPACK_KNOWLEDGE_BASE = `
@@ -121,17 +121,24 @@ module.exports = async function handler(req, res) {
         // Add new user message
         promptContext += `\nUser: ${message}\nAssistant:`;
 
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: promptContext,
-            config: {
-                temperature: 0.5,
-            }
+        const completion = await openrouter.chat.send({
+            model: "openrouter/healer-alpha",
+            messages: [
+                {
+                    role: "system",
+                    content: HAULPACK_KNOWLEDGE_BASE,
+                },
+                {
+                    role: "user",
+                    content: promptContext,
+                },
+            ],
         });
 
-        res.status(200).json({ response: response.text });
+        const botMessage = completion.choices?.[0]?.message?.content || "Sorry, I couldn't generate a response right now.";
+        res.status(200).json({ response: botMessage });
     } catch (error) {
-        console.error("Error calling Gemini:", error);
+        console.error("Error calling OpenRouter:", error);
         res.status(500).json({ error: "Sorry, I am having trouble connecting to my brain right now. Please try again." });
     }
 };

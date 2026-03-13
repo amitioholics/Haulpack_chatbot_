@@ -1,7 +1,7 @@
 import { OpenRouter } from "@openrouter/sdk";
 
 const openrouter = new OpenRouter({
-  apiKey: "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",
+  apiKey: process.env.OPENROUTER_API_KEY,
 });
 
 async function main() {
